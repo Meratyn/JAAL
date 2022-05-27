@@ -230,6 +230,50 @@ const invalid_style_tests = () => {
     create_tests("style", "invalid");
 }
 
+const bundled_test = () => {
+    const ajv = new Ajv2020();
+    const validity = "valid";
+    const schema = require("./bundle/jaal-bundle.json");
+    const validate = ajv.compile(schema);
+
+    const filename = "./test/" + validity + "/" + "jaal-dijkstra-student.json";
+    const test_case = require(filename);
+
+    const validation_passed = validate(test_case);
+
+    if (validation_passed) {
+        if (validity === "valid") { // Expect valid, validation passed
+          tests_passed++;
+        } else {                    // Expect valid, validation failed
+            const file = "/" + validity + "/" + test_file;
+            console.log("Test", filename, "should not pass validation!");
+            tests_failed++;
+        }
+    } else {
+        if (validity === "valid") { // Expect invalid, validation passed
+            console.log("Test", file, "should not fail validation!.");
+            console.log(validate.errors);
+            tests_failed++;
+        } else {                    // Expect invalid, validation failed
+            /* Expected error location and message */
+            const expected_path = test_case.errorInstancePath;
+            const expected_msg  = test_case.errorMessage;
+            /* ajv-produced error location and message */
+            const found_path = validate.errors[0].instancePath;
+            const found_msg = validate.errors[0].message;
+
+            if (expected_path === found_path && expected_msg === found_msg) {
+                tests_passed++;
+            } else {
+                console.log("Test ", filename, ":");
+                console.log("  Expected error:", expected_path, expected_msg);
+                console.log("  Found error   :", found_path, found_msg)
+                tests_failed++;
+            }
+        }
+    }
+}
+
 
 function main() {
     const test_time = "Tests run in";
@@ -258,6 +302,8 @@ function main() {
     invalid_metadata_tests();
     invalid_node_tests();
     invalid_style_tests();
+
+    bundled_test();
 
     console.timeEnd(test_time);
 
