@@ -220,6 +220,21 @@ const invalid_node_tests = () => {
     create_tests("node", "invalid", ["edge", "graph", "keyvalue", "matrix"]);
 }
 
+const validate_specific = (filename) => {
+    const schema = require("./schemas/jaal.json");
+    const files = fs.readdirSync("./test/valid")
+                            .filter(fn => fn.startsWith(filename))
+    
+    dependent_on = expand_dependencies(["definitions", "edge", "event", 
+                                        "graph","initialState", "keyvalue",
+                                        "matrix", "metadata", "node"]);
+    
+    for (var i = 0; i < files.length; i++) {
+        validate_schema(schema, files[i], "valid", dependent_on);
+    }
+    
+}
+
 
 function main() {
     const test_time = "Tests run in";
@@ -247,6 +262,8 @@ function main() {
     invalid_metadata_tests();
     invalid_node_tests();
 
+
+    validate_specific("kruskal_1.json");
     console.timeEnd(test_time);
 
     console.log(String(tests_passed), "tests passed,",
